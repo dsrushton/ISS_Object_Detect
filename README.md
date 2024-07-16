@@ -1,5 +1,6 @@
-# MTLiens
-Watching the ISS livefeed for out of the ordinary objects
+# ISS_Object_Detect
+
+Watching the ISS livefeed for transists and unusual objects
 
 
 A Space Opera in 5 parts
