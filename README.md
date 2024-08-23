@@ -1,7 +1,5 @@
 # ISS_Object_Detect
 
-![ISS_Demo2](https://github.com/user-attachments/assets/e71248bc-ddc8-49b9-9a90-3a9b0a29dbcf)
- 
 Model Available @ https://drive.google.com/file/d/1tRq_BUI9jIKqKexg-BI2Lh1A_6h6D39E/view?usp=sharing
 
 ## Overview
