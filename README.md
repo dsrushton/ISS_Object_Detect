@@ -5,7 +5,9 @@ Model Available @ https://drive.google.com/file/d/1tRq_BUI9jIKqKexg-BI2Lh1A_6h6D
 ## Overview
 Watching the ISS livefeed for transists and unusual objects. A Space Opera in 5 parts.
 
-(In main)
+
+
+(In main):
   4. Execution/Detection (More features to be added with SAM2!)
   5. Youtube ReUpload + Archiving (Coming Soon!)
   
