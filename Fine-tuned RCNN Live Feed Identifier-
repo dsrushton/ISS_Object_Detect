@@ -38,7 +38,7 @@ def initialize_model():
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
-    model.load_state_dict(torch.load("C:/Users/dsrus/Desktop/Workspace/UAP_Python_2/train23august_bb/best_faster_rcnn_model.pth"))
+    model.load_state_dict(torch.load("C:/Users/****/Desktop/Workspace/MTLiens//ISS_fine-tuned_rcnn_model.pth")) #Your model path here
     model = model.cuda()
     model.eval()
     return model
@@ -163,8 +163,8 @@ def process_youtube_live_stream(youtube_url):
 
 # Example usage
 if __name__ == "__main__":
-    youtube_url = 'https://www.youtube.com/watch?v=nEC3xRSSc3k'  # Replace with your live stream URL
-    #youtube_url = 'https://www.youtube.com/watch?v=bZ4nAEhwoCI'  #HD ISS Live Stream https://www.youtube.com/watch?v=nA9UZF-SZoQ
+    youtube_url = 'https://www.youtube.com/watch?v=nEC3xRSSc3k'  # Replace with your current live stream URL
+    #youtube_url = 'https://www.youtube.com/watch?v=bZ4nAEhwoCI'  #HD ISS Live Stream
     process_youtube_live_stream(youtube_url)
 
 # Alternatively
