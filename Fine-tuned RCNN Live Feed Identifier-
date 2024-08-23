@@ -1,0 +1,172 @@
+import torch
+import cv2
+import subprocess
+import threading
+import numpy as np
+from PIL import Image
+import torchvision.transforms as T
+from torchvision.models.detection import fasterrcnn_resnet50_fpn
+
+# Manually define FastRCNNPredictor if not available
+class FastRCNNPredictor(torch.nn.Module):
+    def __init__(self, in_channels, num_classes):
+        super(FastRCNNPredictor, self).__init__()
+        self.cls_score = torch.nn.Linear(in_channels, num_classes)
+        self.bbox_pred = torch.nn.Linear(in_channels, num_classes * 4)
+
+    def forward(self, x):
+        scores = self.cls_score(x)
+        bbox_deltas = self.bbox_pred(x)
+        return scores, bbox_deltas
+
+# Function to get the best stream URL from YouTube
+def get_best_stream_url(youtube_url):
+    try:
+        result = subprocess.run(
+            ['yt-dlp', '-f', 'best', '-g', youtube_url],
+            capture_output=True, text=True, check=True
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"Error fetching stream URL: {e.stderr}")
+        return None
+
+# Initialize the model
+def initialize_model():
+    model = fasterrcnn_resnet50_fpn(pretrained=False)
+    num_classes = 11  # Including background
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+
+    model.load_state_dict(torch.load("C:/Users/dsrus/Desktop/Workspace/UAP_Python_2/train23august_bb/best_faster_rcnn_model.pth"))
+    model = model.cuda()
+    model.eval()
+    return model
+
+# Define the color mapping and thresholds for each class
+class_colors = {
+    'background': (255, 255, 255),  # White
+    'Space': (255, 0, 0),           # Red
+    'Earth_broad': (0, 255, 0),     # Green
+    'ISS': (0, 0, 255),             # Blue
+    'panels': (0, 255, 255),        # Cyan
+    'e_t': (255, 0, 255),           # Magenta
+    'no_feed': (255, 255, 0),       # Yellow
+    't_d': (128, 0, 128),           # Purple
+    'lf': (255, 165, 0),            # Orange
+    'unknown': (128, 128, 128),     # Gray
+    'sun': (255, 255, 255)          # White (as background, but you can change if needed)
+}
+
+# Define class-specific thresholds
+class_thresholds = {
+    'Space': 0.1,
+    'Earth_broad': 0.5,
+    'ISS': 0.5,
+    'panels': 0.5,
+    'e_t': 0.5,
+    'no_feed': 0.5,
+    't_d': 0.5,
+    'lf': 0.5,
+    'unknown': 0.5,
+    'sun': 0.5,
+}
+
+# Function to crop the frame
+def crop_frame(frame):
+    left_crop = 165  # Pixels to crop from the left
+    right_crop = 176  # Pixels to crop from the right
+    cropped_frame = frame[:, left_crop:frame.shape[1] - right_crop]
+    return cropped_frame
+
+# Function to predict and draw bounding boxes on the frame with appropriate colors
+def predict_and_draw_boxes(frame, model, transform, class_names):
+    img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    img = transform(img).unsqueeze(0).cuda()
+
+    with torch.no_grad():
+        predictions = model(img)
+
+    for element in predictions:
+        boxes = element['boxes'].cpu().numpy().astype(np.int32)
+        labels = element['labels'].cpu().numpy()
+        scores = element['scores'].cpu().numpy()
+
+        for i, box in enumerate(boxes):
+            label = class_names[labels[i]]
+            threshold = class_thresholds.get(label, 0.5)  # Default threshold is 0.5
+            if scores[i] > threshold:
+                color = class_colors.get(label, (0, 255, 0))  # Default to green if label not found
+
+                # Adjust label position if the box is near the top edge
+                label_position = (box[0], box[1] - 10) if box[1] > 20 else (box[0], box[1] + 20)
+
+                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), color, 2)
+                cv2.putText(frame, label, label_position, cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
+
+    return frame
+
+# Function to display and process the live feed
+def display_feed(stream_url, model, transform, class_names, stop_event):
+    cap = cv2.VideoCapture(stream_url)
+    
+    # Ensure VideoCapture is correctly initialized
+    if not cap.isOpened():
+        print("Error: Could not open video stream.")
+        return
+
+    while not stop_event.is_set():
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: Failed to read frame from stream.")
+            break
+        
+        # Crop the frame before any processing
+        frame = crop_frame(frame)
+        
+        # Process the frame with the model and draw bounding boxes
+        frame = predict_and_draw_boxes(frame, model, transform, class_names)
+        
+        # Display the processed frame
+        cv2.imshow('Live Stream with Model Predictions', frame)
+        
+        # Check if 'q' is pressed to quit
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            stop_event.set()
+            break
+    
+    cap.release()
+    cv2.destroyAllWindows()
+
+# Main function to start the live stream processing
+def process_youtube_live_stream(youtube_url):
+    stream_url = get_best_stream_url(youtube_url)
+    if not stream_url:
+        print("Failed to get stream URL.")
+        return
+
+    stop_event = threading.Event()
+    
+    # Initialize the model and transform
+    model = initialize_model()
+    transform = T.Compose([T.ToTensor()])
+    class_names = ['background', 'Space', 'Earth_broad', 'ISS', 'panels', 'e_t', 'no_feed', 't_d', 'lf', 'unknown', 'sun']
+
+    # Start the live feed display and processing
+    display_thread = threading.Thread(target=display_feed, args=(stream_url, model, transform, class_names, stop_event))
+    display_thread.start()
+    
+    # Wait for the thread to finish
+    display_thread.join()
+    
+    print("Live stream processing stopped.")
+
+# Example usage
+if __name__ == "__main__":
+    youtube_url = 'https://www.youtube.com/watch?v=nEC3xRSSc3k'  # Replace with your live stream URL
+    #youtube_url = 'https://www.youtube.com/watch?v=bZ4nAEhwoCI'  #HD ISS Live Stream https://www.youtube.com/watch?v=nA9UZF-SZoQ
+    process_youtube_live_stream(youtube_url)
+
+# Alternatively
+    #video_path = r"C:\path_to_your_video\video.mp4"
+    #process_video_feed(video_path)
