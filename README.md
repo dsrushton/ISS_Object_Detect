@@ -8,6 +8,7 @@ Watching the ISS livefeed for transists and unusual objects. A Space Opera in 5 
 In Main
   4. Execution/Detection (More features to be added with SAM2!)
   5. Youtube ReUpload + Archiving (Coming Soon!)
+  6. Additional Features!
   
 In Notebooks Directory
   1. Download
