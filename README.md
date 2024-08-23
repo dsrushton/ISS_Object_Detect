@@ -12,8 +12,8 @@ Watching the ISS livefeed for transists and unusual objects. A Space Opera in 5 
   5. Youtube ReUpload + Archiving (Coming Soon!)
 
 (In Main)
-  1. Execution/Detection (More features to be added with SAM2!)
-  2. Youtube ReUpload + Archiving (Coming Soon!)
+  4. Execution/Detection (More features to be added with SAM2!)
+  5. Youtube ReUpload + Archiving (Coming Soon!)
   
 (In Notebooks Directory)
   1. Download
