@@ -10,9 +10,9 @@ Watching the ISS livefeed for transists and unusual objects. A Space Opera in 5 
   2. DataPrep
   3. Model Training
 
-(In main) 
-  5. Execution/Detection (More features to be added with SAM2!)
-  6. Youtube ReUpload + Archiving (Coming Soon!)
+(In main)
+  4. Execution/Detection (More features to be added with SAM2!)
+  5. Youtube ReUpload + Archiving (Coming Soon!)
 
 ## Installation
 To get started, clone the repository and install the dependencies:
