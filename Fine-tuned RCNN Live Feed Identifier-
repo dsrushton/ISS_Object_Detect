@@ -140,6 +140,42 @@ def display_feed(stream_url, model, transform, class_names, stop_event):
     cap.release()
     cv2.destroyAllWindows()
 
+# Function to process a video file instead of a live stream
+def process_video_feed(video_path):
+    cap = cv2.VideoCapture(video_path)
+    
+    # Ensure VideoCapture is correctly initialized
+    if not cap.isOpened():
+        print("Error: Could not open video file.")
+        return
+
+    # Initialize the model and transform
+    model = initialize_model()
+    transform = T.Compose([T.ToTensor()])
+    class_names = ['background', 'Space', 'Earth_broad', 'ISS', 'panels', 'e_t', 'no_feed', 't_d', 'lf', 'unknown', 'sun']
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("End of video file reached or error reading the frame.")
+            break
+        
+        # Crop the frame before any processing
+        frame = crop_frame(frame)
+        
+        # Process the frame with the model and draw bounding boxes
+        frame = predict_and_draw_boxes(frame, model, transform, class_names)
+        
+        # Display the processed frame
+        cv2.imshow('Video File with Model Predictions', frame)
+        
+        # Check if 'q' is pressed to quit
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    
+    cap.release()
+    cv2.destroyAllWindows()
+
 # Main function to start the live stream processing
 def process_youtube_live_stream(youtube_url):
     stream_url = get_best_stream_url(youtube_url)
