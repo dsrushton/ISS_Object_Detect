@@ -16,7 +16,7 @@ class_mapping = {
     'panels': 4,
     'e_t': 5,
     'no_feed': 6,
-    't_d': 7,
+    'total_darkness': 7,
     'lf': 8,
     'unknown': 9,
     'sun': 0
